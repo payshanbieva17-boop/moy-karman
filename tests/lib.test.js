@@ -16,7 +16,7 @@ test('деньги без ошибок округления', () => {
   assert.ok(Number.isNaN(toCents('abc')));
   assert.equal(centsToDb(5), '0.05');
   assert.equal(centsToDb(-1250), '-12.50');
-  assert.match(formatMoney(123450), /^1\s234,50\sTJS$/);
+  assert.match(formatMoney(123450), /^1\s234,50\s₽$/);
 });
 
 test('быстрый ввод', () => {
@@ -98,4 +98,19 @@ test('JSON-резервная копия туда и обратно', () => {
   assert.equal(b.transactions[0].amountCents, 500050);
   assert.equal(b.rules[0].category, 'fun');
   assert.throws(() => parseBackup('{"a":1}'));
+});
+
+test('рубли в быстром вводе', () => {
+  const t = '2026-11-10';
+  let r = parseQuickInput('Обед 350 руб', new Map(), t);
+  assert.deepEqual([r.title, r.amountCents], ['Обед', 35000]);
+  r = parseQuickInput('Такси 450₽', new Map(), t);
+  assert.deepEqual([r.title, r.amountCents, r.category], ['Такси', 45000, 'transport']);
+  r = parseQuickInput('Кофе 199 р.', new Map(), t);
+  assert.deepEqual([r.title, r.amountCents], ['Кофе', 19900]);
+  r = parseQuickInput('150 ресторан', new Map(), t);
+  assert.deepEqual([r.title, r.amountCents, r.category], ['Ресторан', 15000, 'food']);
+  r = parseQuickInput('Продукты 1 250,50 рублей', new Map(), t);
+  assert.deepEqual([r.title, r.amountCents], ['Продукты', 125050]);
+  assert.equal(toCents('1 500 ₽'), 150000);
 });

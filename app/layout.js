@@ -5,7 +5,7 @@ import { BASE_PATH } from '@/lib/base';
 
 export const metadata = {
   title: 'Мой карман — личные финансы',
-  description: 'Учёт доходов и расходов в сомони',
+  description: 'Учёт доходов и расходов в рублях',
   manifest: `${BASE_PATH}/manifest.webmanifest`,
   appleWebApp: { capable: true, title: 'Мой карман', statusBarStyle: 'default' },
 };

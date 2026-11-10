@@ -32,7 +32,7 @@ function GoalForm({ open, goal, onClose }) {
       <form className="form" onSubmit={submit}>
         <label>Название<input className="input" autoFocus placeholder="Например: Купить камеру" value={title} maxLength={120} onChange={(e) => setTitle(e.target.value)} /></label>
         <div className="grid2">
-          <label>Нужная сумма, TJS<input className="input" inputMode="decimal" value={target} onChange={(e) => setTarget(e.target.value)} /></label>
+          <label>Нужная сумма, ₽<input className="input" inputMode="decimal" value={target} onChange={(e) => setTarget(e.target.value)} /></label>
           <label>Срок (необязательно)<input className="input" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} /></label>
         </div>
         {err && <div className="error">{err}</div>}
@@ -74,7 +74,7 @@ function ContributionForm({ goal, onClose }) {
           <button type="button" className={!withdraw ? 'on' : ''} onClick={() => setWithdraw(false)}>Пополнить</button>
           <button type="button" className={withdraw ? 'on' : ''} onClick={() => setWithdraw(true)}>Снять</button>
         </div>
-        <label>Сумма, TJS<input className="input big" autoFocus inputMode="decimal" placeholder="0,00" value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
+        <label>Сумма, ₽<input className="input big" autoFocus inputMode="decimal" placeholder="0,00" value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
         <div className="grid2">
           <label>Дата<input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
           <label>Комментарий<input className="input" placeholder="Необязательно" value={comment} onChange={(e) => setComment(e.target.value)} /></label>

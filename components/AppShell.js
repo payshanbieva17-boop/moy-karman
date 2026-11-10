@@ -53,7 +53,7 @@ function AuthScreen() {
     <div className="auth">
       <div className="card auth-card">
         <div className="brand big"><span className="brand-mark"><Icon name="wallet" /></span>Мой карман</div>
-        <p className="muted">Личные финансы в сомони. Данные хранятся в вашей базе и доступны с любого устройства.</p>
+        <p className="muted">Личные финансы в рублях. Данные хранятся в вашей базе и доступны с любого устройства.</p>
         <form onSubmit={submit} className="form">
           <label>Почта<input className="input" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
           {mode !== 'reset' && (

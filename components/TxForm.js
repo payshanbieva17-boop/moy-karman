@@ -104,7 +104,7 @@ export default function TxForm({ open, onClose, initial }) {
             <button type="button" className={type === 'income' ? 'on' : ''} onClick={() => switchType('income')}>Доход</button>
           </div>
         )}
-        <label>Сумма, TJS
+        <label>Сумма, ₽
           <input className="input big" inputMode="decimal" autoFocus placeholder="0,00" value={amount}
             onChange={(e) => setAmount(e.target.value)} />
         </label>

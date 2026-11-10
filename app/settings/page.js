@@ -37,11 +37,11 @@ function BudgetCard() {
     <form className="card form" onSubmit={save}>
       <div className="card-title">Баланс и бюджет</div>
       <div className="grid2">
-        <label>Начальный остаток, TJS
+        <label>Начальный остаток, ₽
           <input className="input" inputMode="decimal" placeholder="0" value={opening} onChange={(e) => setOpening(e.target.value)} />
           <span className="muted small">Сколько денег было до начала учёта. Добавляется к общему балансу.</span>
         </label>
-        <label>Бюджет расходов на месяц, TJS
+        <label>Бюджет расходов на месяц, ₽
           <input className="input" inputMode="decimal" placeholder="Не задан" value={budget} onChange={(e) => setBudget(e.target.value)} />
           <span className="muted small">Оставьте пустым, чтобы не отслеживать.</span>
         </label>
