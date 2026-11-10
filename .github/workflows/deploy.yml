@@ -1,0 +1,49 @@
+# Публикация сайта на GitHub Pages при каждом изменении в ветке main
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Это публичные значения: они в любом случае видны в браузере.
+      # Данные защищены правилами доступа (RLS) в базе Supabase.
+      NEXT_PUBLIC_SUPABASE_URL: https://ogwsfpoizfittwycnelz.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nd3NmcG9pemZpdHR3eWNuZWx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQzMzEwNDAsImV4cCI6MjEwOTkwNzA0MH0.5Bndz6_ciOowhsLfmchAyzRVl--AOGiHTS2AD3iAw6c
+      NEXT_PUBLIC_BASE_PATH: /moy-karman
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

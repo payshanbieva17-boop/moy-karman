@@ -67,16 +67,15 @@ npm run dev
 
 **5. Закройте регистрацию для посторонних** (это ваш личный кабинет): Authentication → Sign In / Providers → выключите «Allow new users to sign up». Вход для вас продолжит работать.
 
-## Публикация в интернете (Vercel, бесплатно)
+## Публикация в интернете
 
-1. Загрузите папку проекта в **приватный** репозиторий GitHub (`.env.local` в него не попадёт — он в `.gitignore`).
-2. На [vercel.com](https://vercel.com) → Add New → Project → выберите репозиторий.
-3. В Environment Variables добавьте `NEXT_PUBLIC_SUPABASE_URL` и `NEXT_PUBLIC_SUPABASE_ANON_KEY` → Deploy.
-4. В Supabase: Authentication → URL Configuration → Site URL = ваш адрес вида `https://moy-karman.vercel.app`, его же добавьте в Redirect URLs. Без этого ссылки из писем (подтверждение, сброс пароля) будут вести на localhost.
+Приложение собирается в статический сайт (папка `out/`), поэтому подойдёт любой хостинг.
 
-После этого каждый `git push` автоматически обновляет сайт.
+**GitHub Pages (используется сейчас):** адрес https://payshanbieva17-boop.github.io/moy-karman/. При каждом изменении в ветке `main` сайт пересобирается автоматически (`.github/workflows/deploy.yml`). Адрес и публичный ключ Supabase прописаны в этом файле. В Supabase → Authentication → URL Configuration указан Site URL этого адреса.
 
-**На телефоне:** откройте сайт → «Поделиться» → «На экран „Домой"» (iPhone) или меню → «Добавить на главный экран» (Android). Приложение откроется как обычное, без адресной строки.
+**Vercel / Netlify (по желанию):** импортируйте репозиторий, добавьте переменные `NEXT_PUBLIC_SUPABASE_URL` и `NEXT_PUBLIC_SUPABASE_ANON_KEY`, папка публикации — `out`. `NEXT_PUBLIC_BASE_PATH` не задавайте: сайт будет в корне домена. Не забудьте добавить новый адрес в Redirect URLs в Supabase.
+
+**На телефоне:** откройте сайт в Safari → «Поделиться» → «На экран „Домой"» (iPhone) или меню → «Добавить на главный экран» (Android).
 
 ## Резервное копирование
 
@@ -84,12 +83,12 @@ npm run dev
 
 **Автоматически, каждый день:** в репозитории уже есть `.github/workflows/backup.yml`.
 1. Supabase → Connect → Session pooler → скопируйте строку подключения и подставьте пароль базы.
-2. GitHub → Settings → Secrets and variables → Actions → New secret: имя `SUPABASE_DB_URL`, значение — эта строка.
+2. GitHub → Settings → Secrets and variables → Actions → New repository secret: `SUPABASE_DB_URL` — эта строка; `BACKUP_PASSPHRASE` — придуманный вами пароль для шифрования (сохраните его, без него копию не открыть).
 3. Actions → DB backup → Run workflow — проверьте, что первый запуск зелёный.
 
-Копии хранятся 30 дней в Actions → запуск → Artifacts. Используйте Session pooler, а не Direct connection: прямое подключение работает только по IPv6, а у раннеров GitHub его нет.
+Копии шифруются (AES-256), поэтому их безопасно хранить даже в открытом репозитории. Хранятся 30 дней в Actions → запуск → Artifacts. Расшифровать: `gpg -d moy-karman-ДАТА.dump.gpg > backup.dump`. Используйте Session pooler, а не Direct connection: прямое подключение работает только по IPv6, а у раннеров GitHub его нет.
 
-Восстановить дамп: `pg_restore --clean --if-exists --no-owner -d "строка_подключения" moy-karman-ДАТА.dump`.
+Восстановить расшифрованный дамп: `pg_restore --clean --if-exists --no-owner -d "строка_подключения" moy-karman-ДАТА.dump`.
 
 **Важно про бесплатный тариф Supabase:** на момент написания неактивные проекты на Free-тарифе ставятся на паузу примерно через неделю без запросов; данные при этом сохраняются, проект возобновляется кнопкой в панели. При ежедневном использовании это не случается. Встроенные ежедневные бэкапы Supabase есть только на платных тарифах — поэтому в проекте два своих способа копирования. Условия тарифов меняются, проверьте актуальные на supabase.com/pricing.
 
@@ -104,7 +103,7 @@ npm run dev
 
 ```bash
 npm test        # тесты расчётов, парсера, CSV и JSON
-npm run build   # продакшн-сборка
+npm run build   # статическая сборка в папку out/
 ```
 
 ```

@@ -6,6 +6,7 @@ import { useData } from './DataProvider';
 import { ConfirmProvider, Icon, Toasts } from './ui';
 import TxForm from './TxForm';
 import { getSupabase } from '@/lib/supabase';
+import { appUrl } from '@/lib/base';
 
 const NAV = [
   { href: '/', label: 'Главная', icon: 'home' },
@@ -29,11 +30,11 @@ function AuthScreen() {
     const sb = getSupabase();
     try {
       if (mode === 'reset') {
-        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/settings` });
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: appUrl('/settings/') });
         if (error) throw error;
         setMsg({ ok: true, text: 'Письмо для смены пароля отправлено.' });
       } else if (mode === 'up') {
-        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin } });
+        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: appUrl('/') } });
         if (error) throw error;
         if (!data.session) setMsg({ ok: true, text: 'Аккаунт создан. Подтвердите почту по ссылке из письма и войдите.' });
       } else {
@@ -79,7 +80,8 @@ function Center({ children }) {
 
 export default function AppShell({ children }) {
   const d = useData();
-  const path = usePathname();
+  const rawPath = usePathname() || '/';
+  const path = rawPath.length > 1 ? rawPath.replace(/\/$/, '') : rawPath;
   const [formOpen, setFormOpen] = useState(false);
 
   let body;

@@ -1,7 +1,10 @@
-# Ежедневная резервная копия базы «Мой карман»
-# Требует секрет SUPABASE_DB_URL (строка подключения Session pooler).
-# Копии хранятся 30 дней во вкладке Actions → выбранный запуск → Artifacts.
-# ВАЖНО: репозиторий должен быть приватным — в копии ваши финансовые данные.
+# Ежедневная ЗАШИФРОВАННАЯ резервная копия базы «Мой карман»
+# Нужны два секрета (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL     — строка подключения Session pooler из Supabase (Connect)
+#   BACKUP_PASSPHRASE   — ваш пароль для шифрования копий (придумайте и сохраните!)
+# Пока секретов нет, задача просто пропускается.
+# Копии зашифрованы, поэтому их безопасно хранить даже в открытом репозитории.
+# Расшифровать: gpg -d moy-karman-ДАТА.dump.gpg > backup.dump
 name: DB backup
 
 on:
@@ -12,25 +15,39 @@ on:
 jobs:
   backup:
     runs-on: ubuntu-latest
+    env:
+      DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
     steps:
+      - name: Check secrets
+        id: check
+        run: |
+          if [ -z "$DB_URL" ] || [ -z "$PASSPHRASE" ]; then
+            echo "Секреты SUPABASE_DB_URL и BACKUP_PASSPHRASE не заданы — пропускаю."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install pg_dump 17
+        if: steps.check.outputs.skip != 'true'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq postgresql-common
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get install -y -qq postgresql-client-17
 
-      - name: Dump public schema
-        env:
-          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      - name: Dump and encrypt
+        if: steps.check.outputs.skip != 'true'
         run: |
           STAMP=$(date -u +%Y-%m-%d)
-          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --schema=public --no-owner --no-privileges -Fc -f "moy-karman-$STAMP.dump"
-          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --schema=public --data-only --inserts -f "moy-karman-$STAMP.sql"
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --schema=public --no-owner --no-privileges -Fc -f backup.dump
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$PASSPHRASE" --symmetric --cipher-algo AES256 \
+            -o "moy-karman-$STAMP.dump.gpg" backup.dump
+          rm backup.dump
           ls -lh moy-karman-*
 
       - uses: actions/upload-artifact@v4
+        if: steps.check.outputs.skip != 'true'
         with:
           name: moy-karman-backup-${{ github.run_id }}
-          path: moy-karman-*
+          path: moy-karman-*.gpg
           retention-days: 30
