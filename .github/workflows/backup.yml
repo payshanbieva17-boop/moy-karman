@@ -1,0 +1,36 @@
+# Ежедневная резервная копия базы «Мой карман»
+# Требует секрет SUPABASE_DB_URL (строка подключения Session pooler).
+# Копии хранятся 30 дней во вкладке Actions → выбранный запуск → Artifacts.
+# ВАЖНО: репозиторий должен быть приватным — в копии ваши финансовые данные.
+name: DB backup
+
+on:
+  schedule:
+    - cron: '0 21 * * *'   # каждый день в 02:00 по Душанбе
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install pg_dump 17
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Dump public schema
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          STAMP=$(date -u +%Y-%m-%d)
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --schema=public --no-owner --no-privileges -Fc -f "moy-karman-$STAMP.dump"
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --schema=public --data-only --inserts -f "moy-karman-$STAMP.sql"
+          ls -lh moy-karman-*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: moy-karman-backup-${{ github.run_id }}
+          path: moy-karman-*
+          retention-days: 30
